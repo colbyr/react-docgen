@@ -43,7 +43,13 @@ var argv = require('nomnom')
       help: 'Folders to ignore. Default:',
       list: true,
       default: ['node_modules', '__tests__']
-    }
+    },
+    resolver: {
+      abbr: 'r',
+      choices: ['all', 'exported'],
+      default: 'exported',
+      help: 'Components to analyze. Default:'
+    },
   })
   .parse();
 
@@ -51,11 +57,22 @@ var async = require('async');
 var dir = require('node-dir');
 var fs = require('fs');
 var parser = require('../dist/main.js');
+var resolvers = require('../dist/resolver');
 
 var output = argv.out;
 var paths = argv.path || [];
 var extensions = new RegExp('\\.(?:' + argv.extension.join('|') + ')$');
 var ignoreDir = argv.ignoreDir;
+
+function getResolver() {
+  switch (argv.resolver) {
+    case 'all':
+      return resolvers.findAllReactCreateClassCalls;
+    case 'exported':
+    default:
+      return resolvers.findExportedReactCreateClassCall;
+  }
+}
 
 function writeError(msg, path) {
   if (path) {
@@ -93,7 +110,7 @@ function traverseDir(path, result, done) {
         exitWithError(error);
       }
       try {
-        result[filename] = parser.parse(content);
+        result[filename] = parser.parse(content, getResolver());
       } catch(error) {
         writeError(error, filename);
       }
@@ -124,7 +141,7 @@ if (paths.length === 0) {
   });
   process.stdin.on('end', function () {
     try {
-      exitWithResult(parser.parse(source));
+      exitWithResult(parser.parse(source, getResolver()));
     } catch(error) {
       writeError(error);
     }
@@ -146,7 +163,7 @@ if (paths.length === 0) {
       }
       else {
         try {
-          result[path] = parser.parse(fs.readFileSync(path));
+          result[path] = parser.parse(fs.readFileSync(path), getResolver());
         } catch(error) {
           writeError(error, path);
         }
