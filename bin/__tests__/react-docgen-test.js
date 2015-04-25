@@ -175,6 +175,14 @@ describe('react-docgen CLI', () => {
     ]);
   });
 
+  pit('resolves all components if specified', () => {
+    var tempDir = createTempfiles();
+    return run(['--resolver=all', tempDir]).then(([stdout, stderr]) => {
+      expect(stdout).toContain('Component');
+      expect(stdout).toContain('component isn\'t exported');
+    });
+  });
+
   pit('writes to stdout', () => {
     return run([], component).then(([stdout, stderr]) => {
       expect(stdout.length > 0).toBe(true);

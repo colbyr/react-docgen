@@ -2,6 +2,16 @@ var React = require('react');
 var Foo = require('Foo');
 
 /**
+ * This component isn't exported and will not be analyzed by default.
+ */
+var UnexportedComponent = React.createClass({
+  render: function() {
+    // ...
+  }
+});
+
+
+/**
  * General component description.
  */
 var Component = React.createClass({
